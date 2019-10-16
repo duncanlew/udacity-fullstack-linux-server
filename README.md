@@ -33,12 +33,17 @@ sudo apt install python3-pip
 sudo apt install python3-venv
 sudo apt install apache2
 sudo apt install libapache2-mod-wsgi-py3
+
+# needed for postgresql
+sudo apt-get install python-psycopg2
+sudo apt-get install postgresql postgresql-contrib
+sudo apt-get install libpq-dev
 ```
 
 ## 2. Setting up security
 Security wise, we're going to do two things: we're going to change the SSH port number and set up UFW.
 
-### SSH port number change
+### 2.1 SSH port number change
 In order to change the default port number for ssh from 22 to 2200, we need to do the following:
 ```
 sudo nano /etc/ssh/sshd_config
@@ -53,7 +58,7 @@ to
 Port 2200
 ```
 
-### Set up of UFW
+### 2.2 Set up of UFW
 UFW needs to be set up to allow our new SSH port number. In addition to that we need to also allow www and ntp and deny the default SSH port 22.
 ```bash
 sudo ufw allow 2200/tcp
@@ -62,7 +67,7 @@ sudo ufw allow ntp
 sudo ufw deny 22
 ```
 
-### Finalization
+### 2.3 Finalization
 As a final step, we need to restart the ssh service so that it accepts the port number 2200, and enable the ufw so that the new rules kick into place. 
 ```bash
 sudo service ssh restart
@@ -123,7 +128,7 @@ First we need to clone the repository from [udacity-item-catalog](https://github
 cd /var/www
 sudo git clone https://github.com/duncanlew/udacity-item-catalog.git
 ```
-### 4.2 Installing required packages for the flask app.
+### 4.2 Installing required packages for the flask app
 Change your directory to `/var/www/udacity-item-catalog`. Create a python virtual environment as follows:
 ```bash
 virtualenv -p python3 venv3
@@ -131,6 +136,10 @@ virtualenv -p python3 venv3
 Afterwards, activate this virtual environment as follows:
 ```bash
 source venv3/bin/activate
+```
+Add the following required package into the file `requirements.txt`:
+```
+psycopg2
 ```
 
 Finally, install the required packages for this flask app as follows:
@@ -184,11 +193,38 @@ sudo a2ensite udacity-item-catalog.conf
 For more information and in-depth explanation behind this wsgi setup, check out this [link](https://www.codementor.io/abhishake/minimal-apache-configuration-for-deploying-a-flask-app-ubuntu-18-04-phu50a7ft).
 
 
+### 4.4 Set up PostgreSQL database
+In order to set up the PostgreSQL database, we need to do a couple of things. When PostgreSQL is installed, it comes with a default user in the linux system: postgres. We are going to log into the psql terminal as the default user:
+```
+sudo -u postgres psql
+```
 
-### 4.4 Set up database
+Afterwads, we're going to create a user called `wsgi`, and create a database of which the privileges will be assigned to `wsgi`. Fill in anything password for `wsgi` that you would like.
+```psql
+CREATE USER wsgi WITH PASSWORD 'your-password';
+CREATE DATABASE computer_shop
+GRANT ALL PRIVILEGES ON DATABASE computer_shop TO wsgi;
+```
 
+The next step is to edit the python files `database_initializer.py`, `models.py` and `project.py` in which the sqlite connection will be replaced with a postgres connection. The new connection in the python files needs to like like this:
+```python
+engine = create_engine('postgresql://wsgi:your-password@localhost/computer_shop')
+```
 
-### 4.5 Twitter Oauth tokens
+Finally, run the following two commands to initialize the postgres database:
+```bash
+python3 models.py
+python3 database_initializer.py
+```
+
+For more information about the installation of PostgreSql, pleace check this [link](https://www.digitalocean.com/community/tutorials/how-to-install-and-use-postgresql-on-ubuntu-16-04)
+
+### 4.5 Twitter Sign in  tokens
+Inside `/var/www/udacity-item-catalog/` the Twitter consumer key and secret need to be added to 25 and 26
+```python
+consumer_key='YOUR_CONSUMER_KEY',
+consumer_secret='YOUR_CONSUMER_SECRET'
+```
 
 ### 4.6 Change ownership to www-data
 The default user for web servers on Ubuntu is `www-data`. In order for the web server to be able access the files necessary for the flask app, we're going to give this user ownership of the flask app directory as follows:
