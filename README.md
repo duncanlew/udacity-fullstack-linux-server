@@ -43,7 +43,7 @@ sudo apt-get install libpq-dev
 ## 2. Setting up security
 Security wise, we're going to do two things: we're going to change the SSH port number and set up UFW.
 
-### 2.1 SSH port number change
+### 2.1 SSH port number change and prevent root login
 In order to change the default port number for ssh from 22 to 2200, we need to do the following:
 ```
 sudo nano /etc/ssh/sshd_config
@@ -56,6 +56,11 @@ Port 22
 to 
 ```
 Port 2200
+```
+
+And uncomment the line on `PermitRootLogin` and give it the value no to prevent root login:
+```
+PermitRootLogin no
 ```
 
 ### 2.2 Set up of UFW
