@@ -131,7 +131,7 @@ In the final step, we're going to set up the flask app so that it can be served 
 First we need to clone the repository from [udacity-item-catalog](https://github.com/duncanlew/udacity-item-catalog). We will place this in the `/var/www` directory. This can be done as follows:
 ```bash
 cd /var/www
-sudo git clone https://github.com/duncanlew/udacity-item-catalog.git
+sudo git clone https://github.com/duncanlew/udacity-fullstack-item-catalog.git
 ```
 ### 4.2 Installing required packages for the flask app
 Change your directory to `/var/www/udacity-item-catalog`. Create a python virtual environment as follows:
